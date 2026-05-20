@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="theme-color" content="#0f0f1a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DayCard"/>
+<meta name="description" content="Your daily briefing — weather, news, rates and more in one screen."/>
+<title>DayCard</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<style>
+:root{
+  --bg:#0f0f1a;
+  --bg2:#16162a;
+  --card:rgba(255,255,255,0.06);
+  --card-border:rgba(255,255,255,0.09);
+  --text:#ffffff;
+  --text2:rgba(255,255,255,0.55);
+  --text3:rgba(255,255,255,0.3);
+  --green:#5DCAA5;
+  --green-dark:#1D9E75;
+  --green-deeper:#085041;
+  --amber:#EF9F27;
+  --red:#F09595;
+  --blue:#85B7EB;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height:100dvh}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 8px;position:sticky;top:0;background:var(--bg);z-index:10}
+.logo{font-size:17px;font-weight:700;color:var(--green);letter-spacing:-0.3px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.lang-pill{display:flex;background:var(--card);border:0.5px solid var(--card-border);border-radius:20px;overflow:hidden}
+.lang-btn{font-size:12px;font-weight:600;padding:5px 12px;border:none;background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;font-family:inherit}
+.lang-btn.active{background:var(--green-dark);color:#fff}
+.settings-btn{width:34px;height:34px;border-radius:50%;background:var(--card);border:0.5px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:18px;transition:background .15s}
+.settings-btn:hover{background:rgba(255,255,255,0.1)}
+
+/* SCROLL AREA */
+.scroll{flex:1;overflow-y:auto;padding:4px 18px 100px;scroll-behavior:smooth}
+.scroll::-webkit-scrollbar{display:none}
+
+/* HERO DATE */
+.hero{text-align:center;padding:12px 0 20px}
+.greeting{font-size:13px;color:var(--text3);margin-bottom:4px}
+.date-main{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1.1}
+.date-sub{font-size:12px;color:var(--text3);margin-top:5px;letter-spacing:.02em}
+.location-pill{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:var(--card);border:0.5px solid var(--card-border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--green);cursor:pointer}
+
+/* CARDS */
+.card{background:var(--card);border:0.5px solid var(--card-border);border-radius:16px;padding:14px;margin-bottom:12px}
+.card-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.card-ico{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.card-lbl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em}
+.card-lbl-right{margin-left:auto;font-size:11px;color:var(--text3)}
+
+/* WEATHER */
+.weather-row{display:flex;align-items:center;justify-content:space-between}
+.weather-temp{font-size:44px;font-weight:800;color:var(--text);letter-spacing:-2px;line-height:1}
+.weather-info{margin-top:4px}
+.weather-desc{font-size:14px;color:var(--text2)}
+.weather-city{font-size:12px;color:var(--green);margin-top:3px}
+.weather-emoji{font-size:44px;line-height:1}
+.weather-hilow{font-size:12px;color:var(--text3);margin-top:4px;text-align:right}
+.weather-extra{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:0.5px solid rgba(255,255,255,0.06)}
+.wx-item{text-align:center}
+.wx-val{font-size:14px;font-weight:600;color:var(--text)}
+.wx-lbl{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* GRID 2 */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.mini{background:var(--card);border:0.5px solid var(--card-border);border-radius:14px;padding:12px}
+.mini-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.mini-val{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+.mini-val.green{color:var(--green)}
+.mini-val.amber{color:var(--amber)}
+.mini-val.red{color:var(--red)}
+.mini-val.white{color:var(--text)}
+.mini-chg{font-size:11px;color:var(--text3);margin-top:3px}
+.mini-chg.up{color:var(--green)}
+.mini-chg.down{color:var(--red)}
+
+/* NEWS */
+.news-item{display:flex;gap:10px;padding:9px 0;border-bottom:0.5px solid rgba(255,255,255,0.05)}
+.news-item:last-of-type{border-bottom:none}
+.news-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.news-body{}
+.news-title{font-size:13px;color:var(--text);line-height:1.45;font-weight:500}
+.news-meta{font-size:11px;color:var(--text3);margin-top:3px}
+.news-lock{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--text3);padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.05)}
+
+/* COUNTDOWN */
+.cd-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.cd-row+.cd-row{margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(255,255,255,0.05)}
+.cd-name{font-size:14px;font-weight:600;color:var(--text)}
+.cd-date{font-size:11px;color:var(--text3);margin-top:2px}
+.cd-right{text-align:right}
+.cd-num{font-size:26px;font-weight:800;color:var(--green);letter-spacing:-1px;line-height:1}
+.cd-lbl{font-size:10px;color:var(--text3);margin-top:1px}
+
+/* PRO BAR */
+.pro-bar{background:rgba(29,158,117,0.1);border:0.5px solid rgba(93,202,165,0.2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.pro-bar-text{font-size:12px;color:rgba(93,202,165,0.85);line-height:1.4;max-width:200px}
+.pro-bar-btn{background:var(--green-dark);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .15s;flex-shrink:0}
+.pro-bar-btn:hover{background:var(--green)}
+
+/* LOADING */
+.skeleton{background:rgba(255,255,255,0.06);border-radius:8px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sk-line{height:14px;margin-bottom:8px}
+.sk-big{height:44px;margin-bottom:6px;border-radius:10px}
+
+/* ERROR */
+.err-msg{font-size:12px;color:var(--text3);text-align:center;padding:8px 0}
+
+/* INSTALL BANNER */
+.install-banner{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.4);z-index:100;align-items:center;gap:10px;white-space:nowrap;cursor:pointer}
+.install-banner.show{display:flex}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(15,15,26,0.95);backdrop-filter:blur(12px);border-top:0.5px solid rgba(255,255,255,0.08);display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:20}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;transition:color .15s;border:none;background:transparent;font-family:inherit}
+.nav-item.active{color:var(--green)}
+.nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* SETTINGS PANEL */
+.panel{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:50;align-items:flex-end}
+.panel.open{display:flex}
+.panel-inner{background:#1a1a2e;border-radius:20px 20px 0 0;padding:20px 20px max(20px,env(safe-area-inset-bottom));width:100%;max-height:85vh;overflow-y:auto}
+.panel-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px}
+.panel-field{margin-bottom:16px}
+.panel-field label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:7px}
+.panel-field input,.panel-field select{width:100%;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text);font-size:15px;padding:11px 13px;font-family:inherit;outline:none}
+.panel-field input:focus,.panel-field select:focus{border-color:var(--green-dark)}
+.panel-field select option{background:#1a1a2e}
+.btn-save{width:100%;background:var(--green-dark);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s}
+.btn-save:hover{background:var(--green)}
+.btn-close-panel{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">DayCard</span>
+  <div class="topbar-right">
+    <div class="lang-pill">
+      <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="btn-es" onclick="setLang('es')">ES</button>
+    </div>
+    <button class="settings-btn" onclick="openPanel()" aria-label="Settings">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="scroll" id="scroll">
+
+  <div class="hero">
+    <p class="greeting" id="greeting">Good morning</p>
+    <p class="date-main" id="date-main">Loading...</p>
+    <p class="date-sub" id="date-sub"></p>
+    <div class="location-pill" onclick="openPanel()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span id="location-text">Detecting location...</span>
+    </div>
+  </div>
+
+  <div class="card" id="weather-card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:rgba(133,183,235,0.15)">🌤</div>
+      <span class="card-lbl" id="lbl-weather">Weather</span>
+    </div>
+    <div id="weather-body">
+      <div class="skeleton sk-big"></div>
+      <div class="skeleton sk-line" style="width:60%"></div>
+    </div>
+  </div>
+
+  <div class="grid2" id="rates-grid">
+    <div class="mini" id="mini-usd">
+      <div class="mini-lbl" id="lbl-usd">USD / MXN</div>
+      <div class="mini-val green skeleton sk-big" style="height:28px;width:80%"></div>
+      <div class="mini-chg" id="usd-chg"></div>
+    </div>
+    <div class="mini" id="mini-eur">
+      <div class="mini-lbl" id="lbl-eur">EUR / MXN</div>
+      <div class="mini-val white skeleton sk-big" style="height:28px;width:80%"></div>
+      <div class="mini-chg" id="eur-chg"></div>
+    </div>
+    <div class="mini">
+      <div class="mini-lbl" id="lbl-btc">Bitcoin</div>
+      <div class="mini-val green" id="btc-val">—</div>
+      <div class="mini-chg" id="btc-chg"></div>
+    </div>
+    <div class="mini">
+      <div class="mini-lbl" id="lbl-dow">Dow Jones</div>
+      <div class="mini-val white" id="dow-val">—</div>
+      <div class="mini-chg" id="dow-chg"></div>
+    </div>
+  </div>
+
+  <div class="card" id="news-card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:rgba(239,159,39,0.15)">📰</div>
+      <span class="card-lbl" id="lbl-news">Top news</span>
+    </div>
+    <div id="news-body">
+      <div class="skeleton sk-line"></div>
+      <div class="skeleton sk-line" style="width:80%"></div>
+      <div class="skeleton sk-line" style="width:90%"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:rgba(93,202,165,0.15)">📅</div>
+      <span class="card-lbl" id="lbl-countdown">Countdown</span>
+    </div>
+    <div id="countdown-body"></div>
+  </div>
+
+  <div class="pro-bar">
+    <div class="pro-bar-text" id="pro-text">Unlock custom alerts, more news & cards</div>
+    <button class="pro-bar-btn" id="pro-btn" onclick="location.href='subscribe.html'">Pro · $0.99/mo</button>
+  </div>
+
+</div>
+
+<div class="install-banner" id="install-banner" onclick="installPWA()">
+  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2v13m0 0l-4-4m4 4l4-4M2 17v2a2 2 0 002 2h16a2 2 0 002-2v-2"/></svg>
+  <span id="install-text">Add to home screen</span>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-home">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span id="nav-lbl-home">Today</span>
+  </button>
+  <button class="nav-item" id="nav-pro" onclick="location.href='subscribe.html'">
+    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span id="nav-lbl-pro">Pro</span>
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="openPanel()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span id="nav-lbl-settings">Settings</span>
+  </button>
+</nav>
+
+<div class="panel" id="settings-panel" onclick="panelBgClick(event)">
+  <div class="panel-inner" style="position:relative">
+    <button class="btn-close-panel" onclick="closePanel()">✕</button>
+    <p class="panel-title" id="panel-title">Settings</p>
+    <div class="panel-field">
+      <label id="lbl-city-input">Your city</label>
+      <input type="text" id="city-input" placeholder="e.g. Monterrey"/>
+    </div>
+    <div class="panel-field">
+      <label id="lbl-country-input">Country</label>
+      <input type="text" id="country-input" placeholder="e.g. MX"/>
+    </div>
+    <div class="panel-field">
+      <label id="lbl-currency-input">Main currency pair</label>
+      <select id="currency-select">
+        <option value="USD_MXN">USD / MXN</option>
+        <option value="USD_EUR">USD / EUR</option>
+        <option value="USD_COP">USD / COP</option>
+        <option value="USD_ARS">USD / ARS</option>
+        <option value="USD_BRL">USD / BRL</option>
+        <option value="EUR_USD">EUR / USD</option>
+        <option value="GBP_USD">GBP / USD</option>
+      </select>
+    </div>
+    <button class="btn-save" id="btn-save" onclick="saveSettings()">Save</button>
+  </div>
+</div>
+
+<script>
+const WEATHER_KEY='2f1564d8718c254dade6a74a9a2b8870';
+const EXCHANGE_KEY='c85738395562a40648803c64';
+
+const DAYS_EN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAYS_ES=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_ES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+const I18N={
+  en:{
+    greeting_morning:'Good morning',greeting_afternoon:'Good afternoon',greeting_evening:'Good evening',
+    week:'Week',day:'Day',of:'of',
+    weather:'Weather',feels:'Feels like',humidity:'Humidity',wind:'Wind',
+    usd:'USD / MXN',eur:'EUR / MXN',btc:'Bitcoin',dow:'Dow Jones',
+    news:'Top news',more_news:'+5 more with Pro',
+    countdown:'Countdown',days_left:'days',
+    pro_text:'Unlock custom alerts, more news & cards',pro_btn:'Pro · $0.99/mo',
+    city_lbl:'Your city',country_lbl:'Country',currency_lbl:'Main currency pair',
+    save:'Save',settings:'Settings',detecting:'Detecting location...',
+    today:'Today',pro:'Pro',nav_settings:'Settings',
+    install:'Add to home screen',
+    events:[
+      {name:"Christmas",month:12,day:25},
+      {name:"New Year 2027",month:1,day:1,year:2027},
+      {name:"Valentine's Day",month:2,day:14},
+      {name:"Halloween",month:10,day:31}
+    ]
+  },
+  es:{
+    greeting_morning:'Buenos días',greeting_afternoon:'Buenas tardes',greeting_evening:'Buenas noches',
+    week:'Semana',day:'Día',of:'de',
+    weather:'Clima',feels:'Sensación',humidity:'Humedad',wind:'Viento',
+    usd:'USD / MXN',eur:'EUR / MXN',btc:'Bitcoin',dow:'Dow Jones',
+    news:'Noticias del día',more_news:'+5 titulares más con Pro',
+    countdown:'Cuenta regresiva',days_left:'días',
+    pro_text:'Activa alertas personalizadas, más noticias y tarjetas',pro_btn:'Pro · $0.99/mes',
+    city_lbl:'Tu ciudad',country_lbl:'País',currency_lbl:'Par de divisas principal',
+    save:'Guardar',settings:'Configuración',detecting:'Detectando ubicación...',
+    today:'Hoy',pro:'Pro',nav_settings:'Ajustes',
+    install:'Agregar a inicio',
+    events:[
+      {name:"Navidad",month:12,day:25},
+      {name:"Año Nuevo 2027",month:1,day:1,year:2027},
+      {name:"Día de Muertos",month:11,day:2},
+      {name:"Día del Amor",month:2,day:14}
+    ]
+  }
+};
+
+let lang=localStorage.getItem('dc_lang')||'en';
+let city=localStorage.getItem('dc_city')||'';
+let country=localStorage.getItem('dc_country')||'';
+let currencyPair=localStorage.getItem('dc_currency')||'USD_MXN';
+let deferredPrompt=null;
+
+function t(key){return I18N[lang][key]||key}
+
+function getGreeting(){
+  const h=new Date().getHours();
+  if(h<12) return t('greeting_morning');
+  if(h<19) return t('greeting_afternoon');
+  return t('greeting_evening');
+}
+
+function getDayOfYear(d){
+  return Math.ceil((d-new Date(d.getFullYear(),0,1))/86400000)+1;
+}
+function getWeek(d){
+  const s=new Date(d.getFullYear(),0,1);
+  return Math.ceil(((d-s)/86400000+s.getDay()+1)/7);
+}
+function daysUntil(month,day,year){
+  const now=new Date();
+  const y=year||now.getFullYear();
+  let target=new Date(y,month-1,day);
+  if(target<=now) target=new Date(y+1,month-1,day);
+  return Math.ceil((target-now)/86400000);
+}
+
+function formatDate(d,l){
+  if(l==='es') return DAYS_ES[d.getDay()]+', '+d.getDate()+' de '+MONTHS_ES[d.getMonth()];
+  return DAYS_EN[d.getDay()]+', '+MONTHS_EN[d.getMonth()]+' '+d.getDate();
+}
+function formatSub(d,l){
+  const w=getWeek(d),dy=getDayOfYear(d),yr=d.getFullYear();
+  if(l==='es') return `Semana ${w} · Día ${dy} de ${yr}`;
+  return `Week ${w} · Day ${dy} of ${yr}`;
+}
+
+function setLang(l){
+  lang=l;
+  localStorage.setItem('dc_lang',l);
+  ['en','es'].forEach(x=>{
+    document.getElementById('btn-'+x).classList.toggle('active',x===l);
+  });
+  renderAll();
+}
+
+function renderDate(){
+  const now=new Date();
+  document.getElementById('greeting').textContent=getGreeting();
+  document.getElementById('date-main').textContent=formatDate(now,lang);
+  document.getElementById('date-sub').textContent=formatSub(now,lang);
+}
+
+function renderLabels(){
+  document.getElementById('lbl-weather').textContent=t('weather');
+  document.getElementById('lbl-usd').textContent=currencyPair.replace('_',' / ');
+  document.getElementById('lbl-eur').textContent='EUR / MXN';
+  document.getElementById('lbl-btc').textContent=t('btc');
+  document.getElementById('lbl-dow').textContent=t('dow');
+  document.getElementById('lbl-news').textContent=t('news');
+  document.getElementById('lbl-countdown').textContent=t('countdown');
+  document.getElementById('pro-text').textContent=t('pro_text');
+  document.getElementById('pro-btn').textContent=t('pro_btn');
+  document.getElementById('nav-lbl-home').textContent=t('today');
+  document.getElementById('nav-lbl-pro').textContent=t('pro');
+  document.getElementById('nav-lbl-settings').textContent=t('nav_settings');
+  document.getElementById('panel-title').textContent=t('settings');
+  document.getElementById('lbl-city-input').textContent=t('city_lbl');
+  document.getElementById('lbl-country-input').textContent=t('country_lbl');
+  document.getElementById('lbl-currency-input').textContent=t('currency_lbl');
+  document.getElementById('btn-save').textContent=t('save');
+  document.getElementById('install-text').textContent=t('install');
+}
+
+function renderCountdown(){
+  const events=I18N[lang].events;
+  const body=document.getElementById('countdown-body');
+  body.innerHTML=events.slice(0,3).map((e,i)=>`
+    <div class="cd-row">
+      <div>
+        <div class="cd-name">${e.name}</div>
+        <div class="cd-date">${MONTHS_EN[e.month-1]} ${e.day}</div>
+      </div>
+      <div class="cd-right">
+        <div class="cd-num">${daysUntil(e.month,e.day,e.year)}</div>
+        <div class="cd-lbl">${t('days_left')}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function loadWeather(){
+  const body=document.getElementById('weather-body');
+  const loc=document.getElementById('location-text');
+  try{
+    let lat,lon,cityName,countryCode;
+    if(city){
+      cityName=city; countryCode=country;
+      const geo=await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=1&appid=${WEATHER_KEY}`);
+      const gd=await geo.json();
+      if(gd&&gd[0]){lat=gd[0].lat;lon=gd[0].lon;cityName=gd[0].name;countryCode=gd[0].country;}
+    } else {
+      const ip=await fetch('https://ipapi.co/json/');
+      const id=await ip.json();
+      lat=id.latitude;lon=id.longitude;cityName=id.city;countryCode=id.country_code;
+      if(!city){city=id.city;country=id.country_code;localStorage.setItem('dc_city',city);localStorage.setItem('dc_country',country);}
+    }
+    loc.textContent=`${cityName}, ${countryCode}`;
+    const units='metric';
+    const wRes=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${units}&lang=${lang}&appid=${WEATHER_KEY}`);
+    const w=await wRes.json();
+    const icons={'01d':'☀️','01n':'🌙','02d':'⛅','02n':'🌙','03d':'☁️','03n':'☁️','04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌧️','11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️','50d':'🌫️','50n':'🌫️'};
+    const emoji=icons[w.weather[0].icon]||'🌡️';
+    const temp=Math.round(w.main.temp);
+    const feels=Math.round(w.main.feels_like);
+    const hi=Math.round(w.main.temp_max);
+    const lo=Math.round(w.main.temp_min);
+    const desc=w.weather[0].description.charAt(0).toUpperCase()+w.weather[0].description.slice(1);
+    body.innerHTML=`
+      <div class="weather-row">
+        <div>
+          <div class="weather-temp">${temp}°C</div>
+          <div class="weather-info">
+            <div class="weather-desc">${desc}</div>
+            <div class="weather-city">${cityName}, ${countryCode}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="weather-emoji">${emoji}</div>
+          <div class="weather-hilow">H:${hi}° · L:${lo}°</div>
+        </div>
+      </div>
+      <div class="weather-extra">
+        <div class="wx-item"><div class="wx-val">${feels}°</div><div class="wx-lbl">${t('feels')}</div></div>
+        <div class="wx-item"><div class="wx-val">${w.main.humidity}%</div><div class="wx-lbl">${t('humidity')}</div></div>
+        <div class="wx-item"><div class="wx-val">${Math.round(w.wind.speed)} m/s</div><div class="wx-lbl">${t('wind')}</div></div>
+      </div>`;
+  }catch(e){
+    body.innerHTML=`<p class="err-msg">Could not load weather. Check your API key.</p>`;
+    loc.textContent=city||'Set your city';
+  }
+}
+
+async function loadRates(){
+  try{
+    const [from,to]=currencyPair.split('_');
+    const res=await fetch(`https://v6.exchangerate-api.com/v6/${EXCHANGE_KEY}/latest/${from}`);
+    const d=await res.json();
+    if(d.result==='success'){
+      const rate=d.conversion_rates[to];
+      document.getElementById('mini-usd').querySelector('.mini-val').textContent=rate?rate.toFixed(2):'—';
+      document.getElementById('mini-usd').querySelector('.mini-val').className='mini-val green';
+      document.getElementById('lbl-usd').textContent=`${from} / ${to}`;
+      const eurRate=d.conversion_rates['MXN'];
+      if(eurRate){
+        document.getElementById('mini-eur').querySelector('.mini-val').textContent=(1/eurRate*d.conversion_rates['EUR']).toFixed(4)||'—';
+      }
+    }
+  }catch(e){
+    document.getElementById('mini-usd').querySelector('.mini-val').textContent='—';
+  }
+}
+
+async function loadNews(){
+  const body=document.getElementById('news-body');
+  const dots=['#5DCAA5','#85B7EB','#F09595','#EF9F27','#AFA9EC'];
+  try{
+    const feed=lang==='es'
+      ? 'https://api.allorigins.win/raw?url='+encodeURIComponent('https://www.infobae.com/arc/outboundfeeds/rss/')
+      : 'https://api.allorigins.win/raw?url='+encodeURIComponent('https://feeds.bbci.co.uk/news/world/rss.xml');
+    const res=await fetch(feed);
+    const text=await res.text();
+    const parser=new DOMParser();
+    const xml=parser.parseFromString(text,'text/xml');
+    const items=[...xml.querySelectorAll('item')].slice(0,3);
+    if(!items.length) throw new Error('No items');
+    body.innerHTML=items.map((item,i)=>{
+      const title=item.querySelector('title')?.textContent||'';
+      const pubDate=item.querySelector('pubDate')?.textContent||'';
+      const source=lang==='es'?'Infobae':'BBC World';
+      const ago=pubDate?timeSince(new Date(pubDate)):'';
+      return `<div class="news-item">
+        <div class="news-dot" style="background:${dots[i%dots.length]}"></div>
+        <div class="news-body">
+          <div class="news-title">${title}</div>
+          <div class="news-meta">${source}${ago?' · '+ago:''}</div>
+        </div>
+      </div>`;
+    }).join('')+`<div class="news-lock">🔒 <span>${t('more_news')}</span></div>`;
+  }catch(e){
+    body.innerHTML=`<p class="err-msg">Could not load news.</p>`;
+  }
+}
+
+function timeSince(date){
+  const s=Math.floor((new Date()-date)/1000);
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function renderAll(){
+  renderDate();
+  renderLabels();
+  renderCountdown();
+}
+
+async function loadAll(){
+  renderAll();
+  await Promise.all([loadWeather(),loadRates(),loadNews()]);
+}
+
+function openPanel(){
+  document.getElementById('city-input').value=city;
+  document.getElementById('country-input').value=country;
+  document.getElementById('currency-select').value=currencyPair;
+  document.getElementById('settings-panel').classList.add('open');
+}
+function closePanel(){document.getElementById('settings-panel').classList.remove('open')}
+function panelBgClick(e){if(e.target===document.getElementById('settings-panel'))closePanel()}
+
+function saveSettings(){
+  city=document.getElementById('city-input').value.trim();
+  country=document.getElementById('country-input').value.trim().toUpperCase();
+  currencyPair=document.getElementById('currency-select').value;
+  localStorage.setItem('dc_city',city);
+  localStorage.setItem('dc_country',country);
+  localStorage.setItem('dc_currency',currencyPair);
+  closePanel();
+  loadAll();
+}
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').classList.add('show');
+});
+function installPWA(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-banner').classList.remove('show')});}
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
+}
+
+loadAll();
+setInterval(renderDate,60000);
+</script>
+</body>
+</html>
