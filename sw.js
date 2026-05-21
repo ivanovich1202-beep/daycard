@@ -1,4 +1,4 @@
-const CACHE='daycard-v1';
+const CACHE='daycard-v3';
 const STATIC=[
   '/',
   '/index.html',
