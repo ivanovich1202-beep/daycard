@@ -1,0 +1,7 @@
+{
+  "name": "daycard",
+  "version": "1.0.0",
+  "dependencies": {
+    "stripe": "^15.7.0"
+  }
+}
